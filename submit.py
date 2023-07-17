@@ -66,12 +66,34 @@ if __name__ == "__main__":
     # dir_name = "Experiments/Trials_50"
     # N_trails = 50
 
-    dir_name = "Experiments/Trials_sep_params"
+    # dir_name = "Experiments/Trials_sep_params"
+    # N_trails = 10
+    # sep_dists = [150 * nm, 200 * nm, 250 * nm]
+    # max_sep_facs = [2, 3, 4]
+    # x_0_inits = [0.25, [0.8239384, 0.02414681, -3.40704586, 1.37237894, -0.14930837]]
+    # w_regs = [100.0, 500.0, 2500.0]
+
+    # dir_name = "Experiments/more_bindings_v4"
+    dir_name = "Experiments/more_bindings_moreEval_2nd3rd"
     N_trails = 10
-    sep_dists = [150 * nm, 200 * nm, 250 * nm]
-    max_sep_facs = [2, 3, 4]
-    x_0_inits = [0.25, [0.8239384, 0.02414681, -3.40704586, 1.37237894, -0.14930837]]
-    w_regs = [100.0, 500.0, 2500.0]
+    sep_dists = [200 * nm]
+    max_sep_facs = [5]
+    x_0_inits = [0.5, 1.0, 2.0, 3.0]
+    # x_0_inits = [1.0, 2.0, 3.0, 4.0]
+    # x_0_inits = [
+    #    1,
+    #    2,
+    #   [2.25616176, 0.40949393, -3.01409651, 1.33885962, -1.78278619],
+    #   [-1.15905219, 0.71659915, -5.26650067, 2.52866329, 0.73721344],
+    # ]
+    w_regs = [1.0, 10.0, 100.0, 1000.0]
+
+    w_phases = [1.0, 10.0, 100.0, 1000.0]
+    # target_seps = [1, 2, 3, 4]
+    # target_seps = [578, 1160, 1740]
+    target_seps = [1160, 1740]
+    # target_seps = [578]
+    # target_seps = [1740]
 
     job_names = list()
     arg_paths = list()
@@ -80,26 +102,39 @@ if __name__ == "__main__":
             for max_sep_fac in max_sep_facs:
                 for x_0_init in x_0_inits:
                     for w_reg in w_regs:
-                        if isinstance(x_0_init, list):
-                            x_0_name = "fixed"
-                        else:
-                            x_0_name = "random"
-                        exp_name = f"/sep_dist={int(sep_dist / nm)}-max_sep_fac={max_sep_fac}-x_0={x_0_name}-w_reg={int(w_reg)}-trial={trial}"
+                        for target_sep in target_seps:
+                            for w_phase in w_phases:
+                                if isinstance(x_0_init, list):
+                                    x_0_name = "fixed"
+                                    # if x_0_init == x_0_inits[0]:
+                                    #    x_0_name = "1st"
+                                    # elif x_0_init == x_0_inits[1]:
+                                    #    x_0_name = "2nd"
+                                else:
+                                    # x_0_name = "random"
+                                    x_0_name = x_0_init
+                                exp_name = f"/sep_dist={int(sep_dist / nm)}-max_sep_fac={int(max_sep_fac)}-x_0={x_0_name}-w_reg={int(w_reg)}-trial={trial}-target_dist={int(target_sep)}-w_phase={int(w_phase)}"
 
-                        args["sep_dist"] = sep_dist
-                        args["max_sep_fac"] = max_sep_fac
-                        args["x_0_init"] = x_0_init
-                        args["w_reg"] = w_reg
+                                args["sep_dist"] = sep_dist
+                                args["max_sep_fac"] = max_sep_fac
+                                args["x_0_init"] = x_0_init
+                                args["w_reg"] = w_reg
+                                args["target_dist"] = target_sep * nm
+                                args["w_phase"] = w_phase
 
-                        args["save_path"] = dir_name + exp_name
-                        if args["save_path"] is not None:
-                            save_path = Path(args["save_path"])
-                            save_path.mkdir(parents=True, exist_ok=True)
+                                args["save_path"] = dir_name + exp_name
+                                if args["save_path"] is not None:
+                                    save_path = Path(args["save_path"])
+                                    save_path.mkdir(parents=True, exist_ok=True)
 
-                            with open(save_path / "params.yaml", "w") as yaml_file:
-                                yaml.dump(args, yaml_file, default_flow_style=False)
+                                    with open(
+                                        save_path / "params.yaml", "w"
+                                    ) as yaml_file:
+                                        yaml.dump(
+                                            args, yaml_file, default_flow_style=False
+                                        )
 
-                        job_names.append(exp_name)
-                        arg_paths.append(str(save_path / "params.yaml"))
+                                job_names.append(exp_name)
+                                arg_paths.append(str(save_path / "params.yaml"))
 
     main(job_names, arg_paths)

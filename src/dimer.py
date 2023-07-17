@@ -49,8 +49,11 @@ class DIMER:
         )
         return source
 
-    def _get_dimer(self, init_sep, init_theta, source):
-        initial = get_position_2d(init_sep, init_theta)
+    def _get_dimer(self, init_sep, init_theta, source, init_pos=None):
+        if init_pos is not None:
+            initial = init_pos
+        else:
+            initial = get_position_2d(init_sep, init_theta)
 
         dimer = miepy.sphere_cluster(
             position=initial,
@@ -107,9 +110,9 @@ class DIMER:
         W = sep * cumtrapz(Ft0 - Ft1, thetas, initial=0)
         return W
 
-    def sim(self, init_sep, theta, n_steps, anm, dt=5000 * nm):
+    def sim(self, init_sep, theta, n_steps, anm, dt=5000 * nm, init_pos=None):
         source = self._get_source(anm)
-        dimer = self._get_dimer(init_sep, theta, source)
+        dimer = self._get_dimer(init_sep, theta, source, init_pos=init_pos)
         bd = self._get_bd(dimer, dt)
 
         n_steps = int(n_steps)

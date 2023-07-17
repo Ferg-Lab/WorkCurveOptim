@@ -13,8 +13,8 @@ def dist_loss(W, separation, target_dist, a_0=A_0 * nm):
     min_idxs = argrelextrema(W / kT, np.less)[0]
 
     # consider only minima a distance greater than half an optical binding distance
-    mask = np.where(separation / nm > a_0 / 2 / nm)[0]
-    min_idxs = np.array([idx for idx in min_idxs if idx in mask])
+    # mask = np.where(separation / nm > A_0 / 2 / nm)[0]
+    # min_idxs = np.array([idx for idx in min_idxs if idx in mask])
 
     # If there are no local, define the loss as the difference between the global minima of the work-curve to the work
     # at the target separation
@@ -65,14 +65,16 @@ def dist_loss(W, separation, target_dist, a_0=A_0 * nm):
             # min_2nd = np.delete(
             #    W[min_idxs] / kT, np.where(min_kT == (W[min_idxs] / kT))[0][0]
             # ).min()
-            if global_min_kT < min_kT:
-                # If target minima is not global minima, Loss is difference between global min and target local min
+            loss = min_kT - other_minimas.min()
 
-                loss = min_kT - global_min_kT
-            else:
-                # If target minima is already global minima, maximize separation between the target and the competitor
+            # if global_min_kT < min_kT:
+            #    # If target minima is not global minima, Loss is difference between global min and target local min
 
-                loss = min_kT - other_minimas.min()
+            #    loss = min_kT - global_min_kT
+            # else:
+            #    # If target minima is already global minima, maximize separation between the target and the competitor
+
+            #    loss = min_kT - other_minimas.min()
 
     else:
         # If there are no minima, loss is difference between global minima and work at target separation

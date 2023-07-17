@@ -62,14 +62,17 @@ class Optimizer:
         if self.load_path is not None:
             self._load(self.load_path)
 
-    def loss_func(self, x):
-        anm = self.anm_gen.get_beam_profile(x)
+    def loss_func(self, x, return_dict=False, anm=None):
+        if anm is None:
+            anm = self.anm_gen.get_beam_profile(x)
+        else:
+            anm = np.array(anm)
         W = self.dimer.calc_radial_work(self.separation, self.target_angle, anm)
         W_angle = self.dimer.calc_angular_work(self.thetas, self.target_dist, anm)
 
         dist = dist_loss(W, self.separation, self.target_dist)
         orient = angle_loss_smooth(W_angle, self.thetas, self.target_angle)
-        reg = np.sum(x ** 2)
+        reg = np.sum(anm ** 2)
         phase = phase_loss(anm, self.dimer.Nmax, self.dimer.rho_scale)
 
         total_loss = (
@@ -78,6 +81,15 @@ class Optimizer:
             + self.w_reg * reg
             + self.w_phase * phase
         )
+        if return_dict:
+            loss_dict = {
+                "dist_loss": dist,
+                "orient_loss": orient,
+                "reg_loss": reg,
+                "phase_loss": phase,
+                "total_loss": total_loss,
+            }
+            return loss_dict
         return total_loss
 
     def _load(self, load_path):
@@ -104,15 +116,25 @@ class Optimizer:
     def eval(self, anm):
         init_sep = self.sim_init_sep
         init_angle = self.sim_init_angle
-        n_steps = ms2steps(100, dt=5000 * 1e-9)
+        n_steps = ms2steps(50, dt=5000 * 1e-9)
 
         self.eval_data = dict()
         pos = self.dimer.sim(init_sep, init_angle, n_steps, anm)
         self.eval_data["pos"] = pos
+
+        for ang in np.linspace(0, np.pi, num=8)[1:]:
+            pos = self.dimer.sim(init_sep, ang, n_steps, anm)
+            self.eval_data["pos"] = np.concatenate((self.eval_data["pos"], pos))
+        pos = self.eval_data["pos"]
+
         self.eval_data["separation"] = (
             np.linalg.norm(pos[:, 0] - pos[:, 1], axis=-1) / nm
         )
         self.eval_data["com"] = np.mean(pos[:, 0] + pos[:, 1], axis=-1) / nm
+
+        loss_dict = self.loss_func(x=None, return_dict=True, anm=anm)
+        self.eval_data.update(loss_dict)
+
         return self.eval_data
 
     def optimize(self):
