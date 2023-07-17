@@ -4,6 +4,8 @@ Preliminary write-up of the methods performed here can be found via the editable
 
 A PDF version of this write-up can also be found in `manuscript.pdf` located within this repo.
 
+Slide deck used to present this work most recently can be found here: https://docs.google.com/presentation/d/1WkRdfWVVGU6mpVjL6ScySFOUJYoiNQU_ZfTXhtVdO6E/edit?usp=sharing
+
 `src` directory contains code for performing the optimization
 
 Running `python submit.py` sets up experiments with different hyperparameters and executes them on midway3. The parameters defined in `submit.py` allow you to choose which parameters to screen over such as the target seperations to optimize for, the starting points of the particles, the regularization factors, etc.. (see the `args` variable defined in `submit.py` for the range of possible different parameters)
